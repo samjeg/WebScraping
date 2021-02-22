@@ -69,11 +69,4 @@ class WebScraper:
             if len(next_title) > 0:
                 if len(next_title[0].text) > 0:
                     text_array.append(next_title[0].text)
-                    print("title: %s" %next_title[0].text)
 
-
-    # get_title_text()
-
-
-scraper = WebScraper()
-scraper.get_title_text()
