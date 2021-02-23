@@ -1,6 +1,20 @@
 from lxml.etree import ParseError
 from lxml import etree
+from lxml import html
 import requests 
+import json
+
+class RecipeItem:
+
+    def __init__(self):
+        self.title = ""
+        self.paragraph = ""
+        self.image = ""
+        self.rating = 0.0
+        self.vegetarian = False
+        self.vegan = False
+        self.healthy = False
+
 
 
 class WebScraper:
@@ -8,6 +22,7 @@ class WebScraper:
 
     def __init__(self):
         self.length = self.get_total_recipe_items()
+        self.html_dom = self.get_recipe_html()
 
 
     def parse_html_doc(slef, _html_doc):
@@ -41,32 +56,55 @@ class WebScraper:
         length = len(rows[0])
         return length
 
+    # get title text from recipe items
+    def get_title(self, i):
+        # makes request to the recipe website and uses the path to get the html element
+        title = ""
+        path = "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[" + str(i) + "]/div/div[1]/div[2]/div[1]/h4/a"
+        e_title = self.html_dom.xpath(path)
+        if e_title is not None:
+            if len(e_title[0].text) > 0:
+                title = e_title[0].text
 
+        return title
 
     # get p tag text from recipe items
-    def get_p_text(self):
-        text_array = []
-        # going to the path of each item in the list and 
-        # adding the text from the p tag into the text array
-        for i in range(self.length):
-            url = "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[" + str(i) + "]/div/div[1]/div[2]/div[3]/p"
-            html_dom = self.get_recipe_html()
-            next_p = html_dom.xpath(url)
-            if len(next_p) > 0:
-                if len(next_p[0].text) > 0:
-                    text_array.append(next_p[0].text)
+    def get_p_tag(self, i):
+        # makes request to the recipe website and uses the path to get the html element
+        p_tag = ""     
+        path = "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[" + str(i) + "]/div/div[1]/div[2]/div[3]/p"   
+        e_p_tag = self.html_dom.xpath(path)
+        if e_p_tag is not None:
+            if len(e_p_tag[0].text) > 0:
+                p_tag = e_p_tag[0].text
+
+        return p_tag
+
+    # get p tag text from recipe items
+    def get_image(self, i):
+        path = "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[" + str(i) + "]/div/div[1]/div[1]/a/picture/img"
+        image_r = self.html_dom.xpath(path)
+        if image_r is not None:
+            print("image r src %s, %s"%(image_r.text))
+            if image_r[0] is not None:
+                print("image_r[0] ok")
+        image_r = etree.tostring(image_r, pretty_print=True)
+        image_element = html.fromstring(image_r)
+        image_src = image_element.attrib["src"]
+        return image_src
 
 
-    # # get title tag text from recipe items
-    def get_title_text(self):
-        text_array = []
-        # going to the path of each item in the list and 
-        # adding the text from the title tag into the text array
-        for i in range(self.length):
-            url = "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[" + str(i) + "]/div/div[1]/div[2]/div[1]/h4/a"
-            html_dom = self.get_recipe_html()
-            next_title = html_dom.xpath(url)
-            if len(next_title) > 0:
-                if len(next_title[0].text) > 0:
-                    text_array.append(next_title[0].text)
 
+
+
+recipe_item = RecipeItem()
+web_scraper = WebScraper()
+recipe_item.title = web_scraper.get_title(2)
+recipe_item.rating = 4.0
+recipe_item.paragraph = web_scraper.get_p_tag(2)
+recipe_item.image = web_scraper.get_image(2)
+recipe_item.healthy = True
+recipe_item.vegetarian = True
+recipe_item.vegan = True
+
+print("recipe: %s, %s, %s" %(recipe_item.title, recipe_item.rating, recipe_item.paragraph, recipe_item.image))
