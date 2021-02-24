@@ -1,6 +1,7 @@
 from lxml.etree import ParseError
 from lxml import etree
 from lxml import html
+from bs4 import BeautifulSoup
 import requests 
 import json
 
@@ -23,7 +24,9 @@ class WebScraper:
     def __init__(self):
         self.length = self.get_total_recipe_items()
         self.html_dom = self.get_recipe_html()
-
+        self.url = "https://www.bbcgoodfood.com/recipes/collection/vegetarian-comfort-food-recipes"
+        self.response = requests.get(self.url)
+        self.soup = BeautifulSoup(self.response.text, 'html.parser')
 
     def parse_html_doc(slef, _html_doc):
         _html_dom = None
@@ -81,17 +84,20 @@ class WebScraper:
         return p_tag
 
     # get p tag text from recipe items
-    def get_image(self, i):
-        path = "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[" + str(i) + "]/div/div[1]/div[1]/a/picture/img"
-        image_r = self.html_dom.xpath(path)
-        if image_r is not None:
-            print("image r src %s, %s"%(image_r.text))
-            if image_r[0] is not None:
-                print("image_r[0] ok")
-        image_r = etree.tostring(image_r, pretty_print=True)
-        image_element = html.fromstring(image_r)
-        image_src = image_element.attrib["src"]
-        return image_src
+    def get_image(self):
+        images = self.soup.find_all('img')
+        # print(images)
+
+        for image in images:
+            print("image :%s \n"%image)
+            if image is not None:
+                if 'src' in image is not None:
+                    print("image  ---   %s \n"%image['src'])
+                elif 'data-src' in image is not None:
+                    print("image  ---   %s \n"%image['data-src'])                    
+
+
+
 
 
 
@@ -102,9 +108,10 @@ web_scraper = WebScraper()
 recipe_item.title = web_scraper.get_title(2)
 recipe_item.rating = 4.0
 recipe_item.paragraph = web_scraper.get_p_tag(2)
-recipe_item.image = web_scraper.get_image(2)
+# recipe_item.image = web_scraper.get_image(2)
 recipe_item.healthy = True
 recipe_item.vegetarian = True
 recipe_item.vegan = True
+text = "wp-image-396370 align size-square_thumbnail image-handler__image image-handler__image--aspect no-wrap is-loaded"
 
-print("recipe: %s, %s, %s" %(recipe_item.title, recipe_item.rating, recipe_item.paragraph, recipe_item.image))
+print("recipe: %s, %s, %s, %s" %(recipe_item.title, recipe_item.rating, recipe_item.paragraph, web_scraper.get_image()))
