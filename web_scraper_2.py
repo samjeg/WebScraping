@@ -10,7 +10,7 @@ class RecipeItem:
     def __init__(self):
         self.title = ""
         self.paragraph = ""
-        self.image = ""
+        self.images = ""
         self.rating = 0.0
         self.vegetarian = False
         self.vegan = False
@@ -84,34 +84,90 @@ class WebScraper:
         return p_tag
 
     # get p tag text from recipe items
-    def get_image(self):
+    def get_images(self):
         images = self.soup.find_all('img')
-        # print(images)
+        result = []
 
         for image in images:
-            print("image :%s \n"%image)
-            if image is not None:
-                if 'src' in image is not None:
-                    print("image  ---   %s \n"%image['src'])
-                elif 'data-src' in image is not None:
-                    print("image  ---   %s \n"%image['data-src'])                    
+            if image is not None and image.has_attr('height') and image['height'] == '458':
+                if image.has_attr('src'):
+                    result.append(image['src'])
+                elif image.has_attr('data-src'):
+                    result.append(image['data-src'])
+
+        return result
+
+
+    # get star rating of recipe item
+    def get_rating(self, i):
+        rest = "outof5starrating"
+        span_txt = ""
+        rating = 0
+        path = "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[" + str(i) + "]/div/div[1]/div[2]/div[2]/div/div/span/span"
+        e_span = self.html_dom.xpath(path)
+        if e_span is not None:
+            if len(e_span[0].text) > 0:
+                span_txt = e_span[0].text
+                span_txt = span_txt.replace(" ", "")
+                print("after trimming span text: %s"%span_txt)
+                span_txt = span_txt.removesuffix(rest)
+                rating = int(float(span_txt))
+                print("rating: %s - type: %s"%(rating, type(rating)))
+
+        return rating
+
+    # get attributes from recipe items 
+    def get_attributes(self, i):
+        # Indexing issue must be sorted
+        # there are items that are 
+        # not recipe items
+        attributes = { 'vegetarian': False, 
+                       'vegan': False, 
+                       'healthy': False
+                     }
+        list_path = "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[" + str(i) + "]/div/div[2]"
+        elements = self.html_dom.xpath(list_path)
+        attr_len = len(elements[0])
+
+        for e in range(2, attr_len + 1):
+            path = "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[" + str(i) + "]/div/div[2]/span[" + str(e) + "]/div/div[2]"
+            e_span = self.html_dom.xpath(path)
+            span_txt = e_span[0].text
+            span_txt = span_txt.strip()
+            print("attr: %s"%span_txt)
+            if span_txt == "Vegan":
+                attributes["vegan"] = True
+                attributes["vegetarian"] = True
+            elif span_txt == "Vegetarian":
+                attributes["vegetarian"] = True
+            elif span_txt == "Healthy":
+                attributes["healthy"] = True
+
+        return attributes
 
 
 
 
-
-
-
-
+"/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[5]/div/div[2]/span[4]/div"
 recipe_item = RecipeItem()
 web_scraper = WebScraper()
 recipe_item.title = web_scraper.get_title(2)
-recipe_item.rating = 4.0
+recipe_item.rating = web_scraper.get_rating(13)
 recipe_item.paragraph = web_scraper.get_p_tag(2)
-# recipe_item.image = web_scraper.get_image(2)
+images = web_scraper.get_images()
+recipe_item.image = images[1]
 recipe_item.healthy = True
 recipe_item.vegetarian = True
 recipe_item.vegan = True
-text = "wp-image-396370 align size-square_thumbnail image-handler__image image-handler__image--aspect no-wrap is-loaded"
-
-print("recipe: %s, %s, %s, %s" %(recipe_item.title, recipe_item.rating, recipe_item.paragraph, web_scraper.get_image()))
+""
+"/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[2]/div/div[2]/span[1]/div/div[2]"
+"/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[1]/div/div[2]/span[1]/div/div[2]"
+"/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[1]/div/div[2]/span[2]/div/div[2]"
+"/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[5]/div/div[2]/span[4]/div/div[2]"
+"/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[10]/div/div[2]/span[3]/div/div[2]"
+# html_dom = web_scraper.get_recipe_html()
+# attributes = html_dom.xpath(path)
+# attr_len = len(attributes[0])
+attributes = web_scraper.get_attributes(11)
+print("healthy: %s vegan: %s vegetarian: %s"%(attributes["healthy"], attributes["vegan"], attributes["vegetarian"]))
+# print("recipe: %s, %s, %s, %s, %s, %s, %s" %(recipe_item.title, recipe_item.rating, recipe_item.paragraph, recipe_item.image, web_scraper.length, recipe_item.rating, attr_len))
