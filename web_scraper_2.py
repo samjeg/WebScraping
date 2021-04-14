@@ -29,7 +29,7 @@ class WebScraper:
         self.images = self.get_images()
 
 
-    def parse_html_doc(slef, _html_doc):
+    def parse_html_doc(self, _html_doc):
         _html_dom = None
 
         try:
@@ -43,6 +43,7 @@ class WebScraper:
     # makes a request to the bbcgoodfoods website and 
     # returns a html of the webpage as a response
     def get_recipe_html(self):
+        html_dom = None
         try:
             url = "https://www.bbcgoodfood.com/recipes/collection/vegetarian-comfort-food-recipes"
             headers = {"Content-Type": "text/html", }
@@ -50,7 +51,7 @@ class WebScraper:
             html_doc = response.content 
             html_dom = self.parse_html_doc(html_doc)
         except ParseError as e:
-            print(e)
+            print(e) 
         return html_dom
 
     def get_total_recipe_items(self):
@@ -160,8 +161,6 @@ class WebScraper:
         recipe_item.vegetarian = attributes['vegetarian']
         recipe_item.vegan = attributes['vegan']
         
-
-        # print("index: %s - imgs: %s - rows:%s"%(i, len(self.images), self.length))
         if i > 3 and i < 6:
             recipe_item.image = self.images[i - 2]
         elif i > 6:
@@ -169,14 +168,11 @@ class WebScraper:
         else:
             recipe_item.image = self.images[i - 1]
 
-
-
-
         return recipe_item
 
 
     def get_recipe_items(self):
-        recipe_items = []
+        items = []
         length = self.length
         i = 1
         while i < self.length:
@@ -185,22 +181,42 @@ class WebScraper:
             elif i == 6:
                 i += 1
 
-            print("index: %s"%i)    
             recipe_item = self.get_recipe_item(i)
-            recipe_items.append(recipe_item)
+            items.append(recipe_item)
 
             i += 1
+
+        return items
+
+    # sanitize json list remove escape characters and empty space 
+    def sanitize_recipe_items(self, recipe_items):
+
+        
+        for item in recipe_items:
+            item.title = item.title.replace('\u2019', "'")
+            item.title = item.title.replace('\u2018',"'")            
+            item.paragraph = item.paragraph.strip()
+            item.paragraph = item.paragraph.replace('\n', "")
+            item.paragraph = item.paragraph.strip('\u00a0\n')
+            item.paragraph = item.paragraph.replace('\u00a0', '')
+            item.paragraph = item.paragraph.replace('\u2019', "'")  
+            item.paragraph = self.remove_escapes(item.paragraph)
+            # print("paragraph: %s"%item.paragraph)
 
         return recipe_items
 
     # convert recipe items to json file
     def convert_recipe_items_to_json_file(self):
         web_scraper = WebScraper()
-        recipe_items = web_scraper.get_recipe_items()
+        items = web_scraper.get_recipe_items()
+        items = web_scraper.sanitize_recipe_items(items)
+        items = json.dumps([item.__dict__ for item in items])
+        
+        with open('recipe_items.json', 'w') as f:
+            f.write(items)
+            f.close()
 
-        with open('recipe_items.json', 'w') as outfile:
-            json.dump(recipe_items, outfile)
-
+    
 
     # prints recipe object
     def print_recipe_item(self, i):
@@ -215,33 +231,21 @@ class WebScraper:
         print("image: %s"%recipe_item.image)
 
 
+    # remove escape characters
+    def remove_escapes(self, string):
+        # check for unicode character and remove it 
+        for i, ch in enumerate(string):
+            if ch == '\u00a0':
+                break
+        
+        if i == len(string):
+            string.replace('\u00a0', '') 
+
+        return string
 
 
 
 
 web_scraper = WebScraper()
 web_scraper.convert_recipe_items_to_json_file()
-# web_scraper.print_recipe_item(1)
-# recipe_items = web_scraper.get_recipe_items()
 
-
-# "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[5]/div/div[2]/span[4]/div"
-# recipe_item = RecipeItem()
-# recipe_item.title = web_scraper.get_title(2)
-# recipe_item.rating = web_scraper.get_rating(13)
-# recipe_item.paragraph = web_scraper.get_p_tag(2)
-# images = web_scraper.get_images()
-# recipe_item.image = images[1]
-# attributes = web_scraper.get_attributes(11)
-# recipe_item.healthy = attributes["healthy"]
-# recipe_item.vegetarian = attributes["vegan"]
-# recipe_item.vegan = attributes["vegetarian"]
-# ""
-# "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[2]/div/div[2]/span[1]/div/div[2]"
-# "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[1]/div/div[2]/span[1]/div/div[2]"
-# "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[1]/div/div[2]/span[2]/div/div[2]"
-# "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[5]/div/div[2]/span[4]/div/div[2]"
-# "/html/body/div[4]/div[2]/article/div[1]/div/div[1]/div[1]/div[3]/div[1]/div/div/div[10]/div/div[2]/span[3]/div/div[2]"
-
-# print("recipe: %s, %s, %s, %s" %(recipe_item.title, recipe_item.rating, recipe_item.paragraph, recipe_item.image))
-# print("healthy: %s vegan: %s vegetarian: %s"%(recipe_item.healthy, recipe_item.vegetarian, recipe_item.vegan))
