@@ -8,7 +8,7 @@ import json
 class RecipeDetail:
 
     def __init__(self):
-    	self.title = ""
+        self.title = ""
         self.summary = ""
         self.ingredients = []
         self.steps = []
@@ -81,12 +81,32 @@ class WebScraper:
         
         for title in titles:
             if len(title) > 0:
-            	titles2.append(title)
+                titles2.append(title)
 
         return titles2
 
-    def get_recipe_detail(self, i):
-        recipe_detail = None
+    # get data from recipe detail page using the recipe title 
+    def get_recipe_detail(self, title):
+        summary = self.get_summary(title)
+        ingredients = self.get_ingredients(title)
+        p_tags = self.get_p_tags(title)
+        rd = RecipeDetail()
+        rd.title = title
+        rd.summary = summary 
+        rd.ingredients = ingredients
+        rd.steps = p_tags        
+
+        return rd
+
+    # get all recipe item data from thier respective pages 
+    def get_recipes(self):
+        titles = self.get_titles()
+        recipes = []
+
+        for title in titles:
+            recipes.append(self.get_recipe_detail(title))
+
+        return recipes
 
     # a get request to get ingredients list
     def get_ingredients(self, title):
@@ -96,17 +116,67 @@ class WebScraper:
 
         return ingredients
 
-    # get p tag text from recipe items
+    # get p tag text from recipe detail
     def get_p_tags(self, title):
         soup = self.init_html_parser(title)
         ps = soup.find_all('p')
         ps = [ps[i].text for i in range(1, len(ps))]
 
-        self.summary = ps[0]
+        return ps
+    
+    # get summary text from recipe detail
+    def get_summary(self, title):
+        soup = self.init_html_parser(title)
+        url = "/html/body/div[1]/div[3]/main/div/section/div/div[3]/div[3]/div/p"
+        html_dom = self.get_recipe_detail_html(title)
+        summary = html_dom.xpath(url)
 
-        return ps 
+        return summary
+        
+    # get ingredients text from recipe detail page 
+    def ingredients_2(self, title):
+        li_class = "pb-xxs pt-xxs list-item list-item--separator"
+        html_dom = self.get_recipe_detail_html(title)
+        ls = html_dom.xpath("//li[@class='%s']"%li_class)
+        length = len(ls)
+        ls = [ls[i] for i in range(length)]
+        res = []
+        
+        for item in ls:
+            start = ""
+            children = item.getchildren()
 
-    # get title text from recipe items
+            if item.text is not None:
+                start = item.text
+
+            res.append("%s%s%s"%(start, self.elements_to_string(children), self.nested_text(children)))            
+
+        return res
+
+
+    # store the text from each element in single string
+    def  elements_to_string(self, ls):
+        s = ""
+
+        for i in range(len(ls)):
+            s += ls[i].text
+
+        return s
+
+    # store the text after each element in single string
+    def nested_text(self, ls):
+        s = ""
+
+        for i in range(len(ls)):
+            s += ls[i].tail if ls[i].tail is not None else "" 
+
+        return s
+
+
+                
+
+        
+    # get title text from recipe detail
     def get_title(self, i):
         # makes request to the recipe website and uses the path to get the html element
         title = ""
@@ -115,7 +185,7 @@ class WebScraper:
         e_title = html_dom.xpath(path)
         
         if len(e_title) > 0:
-	        title = e_title[0].text
+            title = e_title[0].text
 
         return title
 
@@ -131,11 +201,65 @@ class WebScraper:
 
         return string
 
+    # sanitize json list remove escape characters and empty space 
+    def sanitize_recipe_detail(self, recipe_detail):
 
+        for attr in recipe_detail:
+            attr.title = attr.title.replace('\u2019', "'")
+            attr.title = attr.title.replace('\u2018',"'")            
+            attr.summary = attr.summary.strip()
+            attr.summary = attr.summary.replace('\n', "")
+            attr.summary = attr.summary.strip('\u00a0\n')
+            attr.summary = attr.summary.replace('\u00a0', '')
+            attr.summary = attr.summary.replace('\u2019', "'")  
+            attr.summary = self.remove_escapes(attr.summary)
+            attr.steps = self.sanitize_recipe_steps(attr.steps)
+            attr.ingredients = self.sanitize_recipe_ingredients(attr.ingredients)
+
+        return recipe_detail
+
+    # sanitize json list remove escape characters and empty space 
+    def sanitize_recipe_steps(self, steps):
+
+        for step in steps:        
+            step = step.strip()
+            step = step.replace('\n', "")
+            step = step.strip('\u00a0\n')
+            step = step.replace('\u00a0', '')
+            step = step.replace('\u2019', "'")  
+            step = self.remove_escapes(step)
+            
+        return steps
+
+    # sanitize json list remove escape characters and empty space 
+    def sanitize_recipe_ingredients(self, ingredients):
+
+        for ingredient in ingredients:        
+            ingredient = ingredient.strip()
+            ingredient = ingredient.replace('\n', "")
+            ingredient = ingredient.strip('\u00a0\n')
+            ingredient = ingredient.replace('\u00a0', '')
+            ingredient = ingredient.replace('\u2019', "'")  
+            ingredient = self.remove_escapes(ingredient)
+
+        return ingredients
+
+        # convert recipe details to json file
+    def convert_recipe_details_to_json_file(self):
+        web_scraper = WebScraper()
+        titles = self.get_titles()
+        details = [web_scraper.get_recipe_detail(title) for title in titles]
+        details = [web_scraper.sanitize_recipe_detail(detail) for detail in details]
+        details = json.dumps([detail.__dict__ for detail in details])
+        
+        with open('recipe_details.json', 'w') as f:
+            f.write(details)
+            f.close()
 
 
 web_scraper = WebScraper()
-web_scraper.get_p_tags("one-pot-paneer-curry-pie")
-web_scraper.get_ingredients("one-pot-paneer-curry-pie")
-web_scraper.get_titles()
+# web_scraper.convert_recipe_details_to_json_file()
+web_scraper.ingredients_2("beer-mac-n-cheese")
+
+
 

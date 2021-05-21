@@ -191,7 +191,6 @@ class WebScraper:
     # sanitize json list remove escape characters and empty space 
     def sanitize_recipe_items(self, recipe_items):
 
-        
         for item in recipe_items:
             item.title = item.title.replace('\u2019', "'")
             item.title = item.title.replace('\u2018',"'")            
@@ -201,7 +200,7 @@ class WebScraper:
             item.paragraph = item.paragraph.replace('\u00a0', '')
             item.paragraph = item.paragraph.replace('\u2019', "'")  
             item.paragraph = self.remove_escapes(item.paragraph)
-            # print("paragraph: %s"%item.paragraph)
+            
 
         return recipe_items
 
@@ -212,7 +211,7 @@ class WebScraper:
         items = web_scraper.sanitize_recipe_items(items)
         items = json.dumps([item.__dict__ for item in items])
         
-        with open('recipe_items.json', 'w') as f:
+        with open('recipe_items_3.json', 'w') as f:
             f.write(items)
             f.close()
 
