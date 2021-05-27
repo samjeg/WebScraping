@@ -209,14 +209,18 @@ class WebScraper:
         web_scraper = WebScraper()
         items = web_scraper.get_recipe_items()
         items = web_scraper.sanitize_recipe_items(items)
-        items = json.dumps([item.__dict__ for item in items])
+        [print("item type: %s"%type(item.__dict__)) for item in items]
+        items = [item.__dict__ for item in items]
+        print("json dumps input type: %s"%type(items))
+
+        # items = json.dumps([item.__dict__ for item in items])
         
-        with open('recipe_items_3.json', 'w') as f:
-            f.write(items)
-            f.close()
+        # with open('recipe_items_3.json', 'w') as f:
+        #     f.write(items)
+        #     f.close()
 
     
-
+    
     # prints recipe object
     def print_recipe_item(self, i):
         recipe_item = self.get_recipe_item(i)
