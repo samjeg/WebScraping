@@ -16,6 +16,9 @@ class RecipeDetail:
 
 class WebScraper:
 
+    def __init__(self):
+        self.letters = set(list("abcdefghijklmnopqrstuvwxyz"))
+
     def parse_html_doc(self, _html_doc):
         _html_dom = None
 
@@ -97,7 +100,6 @@ class WebScraper:
         soup = self.init_html_parser(title)
         ps = soup.find_all('p')
         ps = [ps[i].text for i in range(1, len(ps))]
-        print("p tags type: %s len: %s title: %s"%(type(ps), len(ps), title))
 
         return ps
     
@@ -106,14 +108,11 @@ class WebScraper:
         soup = self.init_html_parser(title)
         url = "/html/body/div[1]/div[3]/main/div/section/div/div[3]/div[3]/div/p"
         html_dom = self.recipe_detail_html(title)
-        summary = html_dom.xpath(url)
-        print("summary: %s type: %s len: %s title: %s"%(summary, type(summary), len(summary), title))        
+        summary = html_dom.xpath(url)    
 
         if summary:
-            print("summary: %s"%summary[0].text)   
             summary = summary[0].text     
         else:
-            print("no summary")
             summary = ""
 
         return summary
@@ -126,7 +125,6 @@ class WebScraper:
         length = len(ls)
         ls = [ls[i] for i in range(length)]
         res = []
-        print("ingredients type: %s len: %s title: %s"%(type(ls), len(ls), title))
         for item in ls:
             start = ""
             children = item.getchildren()
@@ -169,7 +167,10 @@ class WebScraper:
         if len(e_title) > 0:
             title = e_title[0].text
             title = title.lower()
-            title = title.replace(" ", "-")
+            title = self.only_letters(title)
+            title = self.space_to_hypens(title)
+
+        print("title: %s i: %s"%(title, i))
 
         return title
 
@@ -258,6 +259,34 @@ class WebScraper:
         
         return ingredients
 
+    # leaves only the lowercase letters in the string, as well as any empty spaces 
+    def only_letters(self, s: str) -> str:
+        self.letters.add(" ")
+        self.letters.add("-")
+        s2 = ""
+
+        for char in s:
+            if char in self.letters:
+                s2 += char
+    
+        return s2
+
+    def space_to_hypens(self, s: str) -> str:
+        length = len(s)
+        s2 = ""
+        
+        for i in range(length - 1):
+            if s[i] == " " and s[i + 1] != " ": # look ahead before adding hypen 
+                s2 += "-"
+            elif s[i] != " " or s[i] == "-":
+                s2 += s[i]
+
+        s2 += s[length - 1] # add last character
+
+        return s2
+
+
+
     # convert recipe details to json file
     def convert_recipe_details_to_json_file(self):
         web_scraper = WebScraper()
@@ -265,7 +294,7 @@ class WebScraper:
         pages = self.recipe_pages(titles)
         pages = json.dumps([page.__dict__ for page in pages])
         
-        with open('recipe_pages_4.json', 'w') as f:
+        with open('recipe_pages_6.json', 'w') as f:
             f.write(pages)
             f.close()
 
