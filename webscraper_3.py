@@ -284,10 +284,36 @@ class WebScraper:
 
         return s2
 
+    # find string from list and add prefix 
+    def add_prefix(self, ls: list[str], st: str, prefix: str) -> list[str]:
+        length = len(ls)
+        found = False
+        i = 0
+
+        while i < length and not found:
+            if ls[i] == st:
+                temp = "%s%s"%(prefix, st)
+                ls[i] = temp
+                found = True
+            i += 1
+
+        return ls
+    # remove newline characters from string element in the list of recipe attribute 
+    def escape_newlines(self, rp, k):
+        ls2 = []
+        
+        for el in rp[k]:
+            temp = el.replace("\r\n", "")
+            temp = temp.replace("\n", "")
+            ls2.append(temp)
+        
+        return ls2
+
     # convert recipe details to json file
     def convert_recipe_details_to_json_file(self):
         web_scraper = WebScraper()
         titles = self.titles()
+        titles = self.add_prefix(titles, "minestrone-soup", "chunky-")
         pages = self.recipe_pages(titles)
         length = len(pages)
         pages2 = []
@@ -297,26 +323,15 @@ class WebScraper:
             
             # shorten for loops in method 
             # use multi-threading speed up runtime of possible
-            steps2 = []
-            for step in page["steps"]:
-                stp = step.replace("\r\n", "")
-                stp = stp.replace("\n", "")
-                steps2.append(stp)
-            page["steps"] = steps2
-
-            ingredients2 = []
-            for ingredient in page["ingredients"]:
-                ingrdnt = ingredient.replace("\r\n", "")
-                ingrdnt = ingrdnt.replace("\n", "")
-                ingredients2.append(ingrdnt)
-            page["ingredients"] = ingredients2
+            page["steps"] = self.escape_newlines(page, "steps")
+            page["ingredients"] = self.escape_newlines(page, "ingredients")
 
             pages2.append(page)
 
         pages2 = json.dumps(pages2, ensure_ascii=False).encode("utf8")
         pages2 = pages2.decode()
         
-        with open('recipe_details.json', 'w') as f:
+        with open('recipe_details_3.json', 'w') as f:
             f.write(pages2)
             f.close()
 
