@@ -8,7 +8,7 @@ import json
 class RecipeDetail:
 
     def __init__(self):
-        self.title_ = ""
+        self.title = ""
         self.summary = ""
         self.ingredients = []
         self.steps = []
@@ -170,7 +170,6 @@ class WebScraper:
             title = self.only_letters(title)
             title = self.space_to_hypens(title)
 
-        print("title: %s i: %s"%(title, i))
 
         return title
 
@@ -194,7 +193,7 @@ class WebScraper:
         ingredients = self.ingredients(title)
         p_tags = self.p_tags(title)
         rd = RecipeDetail()
-        rd.title_ = title
+        rd.title = title
         rd.summary = summary 
         rd.ingredients = ingredients
         rd.steps = p_tags        
@@ -213,8 +212,8 @@ class WebScraper:
 
     # sanitize json list remove escape characters and empty space 
     def sanitize_recipe_detail(self, recipe_detail):
-        recipe_detail.title_ = recipe_detail.title_.replace('\u2019', "'")
-        recipe_detail.title_ = recipe_detail.title_.replace('\u2018',"'")        
+        recipe_detail.title = recipe_detail.title.replace('\u2019', "'")
+        recipe_detail.title = recipe_detail.title.replace('\u2018',"'")        
         recipe_detail.summary = self.sanitize_recipe_summary(recipe_detail.summary)
         recipe_detail.steps = self.sanitize_recipe_steps(recipe_detail.steps)
         recipe_detail.ingredients = self.sanitize_recipe_ingredients(recipe_detail.ingredients)
@@ -285,17 +284,40 @@ class WebScraper:
 
         return s2
 
-
-
     # convert recipe details to json file
     def convert_recipe_details_to_json_file(self):
         web_scraper = WebScraper()
         titles = self.titles()
         pages = self.recipe_pages(titles)
-        pages = json.dumps([page.__dict__ for page in pages])
+        length = len(pages)
+        pages2 = []
+
+        for i in range(length):
+            page = pages[i].__dict__
+            
+            # shorten for loops in method 
+            # use multi-threading speed up runtime of possible
+            steps2 = []
+            for step in page["steps"]:
+                stp = step.replace("\r\n", "")
+                stp = stp.replace("\n", "")
+                steps2.append(stp)
+            page["steps"] = steps2
+
+            ingredients2 = []
+            for ingredient in page["ingredients"]:
+                ingrdnt = ingredient.replace("\r\n", "")
+                ingrdnt = ingrdnt.replace("\n", "")
+                ingredients2.append(ingrdnt)
+            page["ingredients"] = ingredients2
+
+            pages2.append(page)
+
+        pages2 = json.dumps(pages2, ensure_ascii=False).encode("utf8")
+        pages2 = pages2.decode()
         
-        with open('recipe_pages_6.json', 'w') as f:
-            f.write(pages)
+        with open('recipe_details.json', 'w') as f:
+            f.write(pages2)
             f.close()
 
 wb = WebScraper()
