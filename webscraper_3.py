@@ -32,7 +32,7 @@ class WebScraper:
                                    "noodles-with-crispy-chilli-oil-eggs": 6,
                                    "squash-chickpea-coconut-curry": 4,
                                    "chunky-minestrone-soup": 3,
-                                   "pumpkin-curry-chickpeas": 2,
+                                   "pumpkin-curry-with-chickpeas": 2,
                                    "gnocchi-tomato-bake": 5,
                                    "spiced-lentil-spinach-pies": 3,
                                    "coconut-rum-raisin-rice-pudding": 3, 
@@ -127,7 +127,7 @@ class WebScraper:
     def steps(self, title, n):
         soup = self.init_html_parser(title)
         ps = soup.find_all('p')
-        ps = [ps[i].text for i in range(1, n + 1)]
+        ps = [ps[i].text for i in range(1, n - 1)]
 
         return ps
     
@@ -360,6 +360,6 @@ class WebScraper:
         pages2 = json.dumps(pages2, ensure_ascii=False).encode("utf8")
         pages2 = pages2.decode()
         
-        with open('recipe_details_3.json', 'w') as f:
+        with open('recipe_details_5.json', 'w') as f:
             f.write(pages2)
             f.close()
