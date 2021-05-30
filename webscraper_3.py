@@ -18,6 +18,33 @@ class WebScraper:
 
     def __init__(self):
         self.letters = set(list("abcdefghijklmnopqrstuvwxyz"))
+        self.page_step_count = {
+                                   "one-pot-paneer-curry-pie": 4,
+                                   "beer-mac-n-cheese": 2,
+                                   "homity-pie": 3,
+                                   "italian-veggie-cottage-pie": 3,
+                                   "next-level-ratatouille": 4,
+                                   "triple-cheese-aubergine-lasagne": 5,
+                                   "melty-cheese-potato-pie": 5,
+                                   "smoky-spiced-veggie-rice": 4,
+                                   "butternut-squash-sage-macaroni-cheese": 4,
+                                   "spiced-aubergine-bake": 4,
+                                   "noodles-with-crispy-chilli-oil-eggs": 6,
+                                   "squash-chickpea-coconut-curry": 4,
+                                   "chunky-minestrone-soup": 3,
+                                   "pumpkin-curry-chickpeas": 2,
+                                   "gnocchi-tomato-bake": 5,
+                                   "spiced-lentil-spinach-pies": 3,
+                                   "coconut-rum-raisin-rice-pudding": 3, 
+                                   "spinach-ricotta-cannelloni": 3,
+                                   "frozen-pumpkin-cheesecake": 3,
+                                   "leek-cheese-potato-pasties": 3,
+                                   "potato-curry-with-lime-cucumber-raita": 3,
+                                   "spiced-lentil-butternut-squash-soup": 3,
+                                   "wild-mushroom-chestnut-cottage-pie": 3,
+                                   "slow-cooker-ratatouille": 2
+
+                               }
 
     def parse_html_doc(self, _html_doc):
         _html_dom = None
@@ -95,11 +122,12 @@ class WebScraper:
 
         return recipes
 
+    # convert to take only step p elements 
     # get p tag text from recipe detail
-    def p_tags(self, title):
+    def steps(self, title, n):
         soup = self.init_html_parser(title)
         ps = soup.find_all('p')
-        ps = [ps[i].text for i in range(1, len(ps))]
+        ps = [ps[i].text for i in range(1, n + 1)]
 
         return ps
     
@@ -191,12 +219,13 @@ class WebScraper:
     def recipe_detail(self, title):
         summary = self.summary(title)
         ingredients = self.ingredients(title)
-        p_tags = self.p_tags(title)
+        n = self.page_step_count[title]
+        steps = self.steps(title, n)
         rd = RecipeDetail()
         rd.title = title
         rd.summary = summary 
         rd.ingredients = ingredients
-        rd.steps = p_tags        
+        rd.steps = steps        
 
         return rd
 
@@ -334,6 +363,3 @@ class WebScraper:
         with open('recipe_details_3.json', 'w') as f:
             f.write(pages2)
             f.close()
-
-wb = WebScraper()
-wb.convert_recipe_details_to_json_file()
