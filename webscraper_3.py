@@ -20,14 +20,12 @@ class WebScraper:
         self.letters = set(list("abcdefghijklmnopqrstuvwxyz"))
         self.page_step_count = {
                                    "one-pot-paneer-curry-pie": 4,
-                                   "beer-mac-n-cheese": 2,
                                    "homity-pie": 3,
                                    "italian-veggie-cottage-pie": 3,
                                    "next-level-ratatouille": 4,
                                    "triple-cheese-aubergine-lasagne": 5,
                                    "melty-cheese-potato-pie": 5,
                                    "smoky-spiced-veggie-rice": 4,
-                                   "butternut-squash-sage-macaroni-cheese": 4,
                                    "spiced-aubergine-bake": 4,
                                    "noodles-with-crispy-chilli-oil-eggs": 6,
                                    "squash-chickpea-coconut-curry": 4,
@@ -45,6 +43,7 @@ class WebScraper:
                                    "slow-cooker-ratatouille": 2
 
                                }
+        self.ex_titles = set(["beer-mac-n-cheese", "butternut-squash-sage-macaroni-cheese"])
 
     def parse_html_doc(self, _html_doc):
         _html_dom = None
@@ -107,7 +106,7 @@ class WebScraper:
         titles2 = []
         
         for title in titles:
-            if len(title) > 0:
+            if len(title) > 0 and title not in self.ex_titles:
                 titles2.append(title)
 
         return titles2
@@ -127,7 +126,7 @@ class WebScraper:
     def steps(self, title, n):
         soup = self.init_html_parser(title)
         ps = soup.find_all('p')
-        ps = [ps[i].text for i in range(1, n - 1)]
+        ps = [ps[i].text for i in range(1, n + 1)]
 
         return ps
     
@@ -360,6 +359,10 @@ class WebScraper:
         pages2 = json.dumps(pages2, ensure_ascii=False).encode("utf8")
         pages2 = pages2.decode()
         
-        with open('recipe_details_5.json', 'w') as f:
+        with open('recipe_details.json', 'w') as f:
             f.write(pages2)
             f.close()
+
+
+wb = WebScraper()
+wb.convert_recipe_details_to_json_file()
