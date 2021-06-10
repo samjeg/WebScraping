@@ -18,6 +18,7 @@ class WebScraper:
 
     def __init__(self):
         self.letters = set(list("abcdefghijklmnopqrstuvwxyz"))
+
         self.page_step_count = {
                                    "one-pot-paneer-curry-pie": 4,
                                    "homity-pie": 3,
@@ -41,8 +42,8 @@ class WebScraper:
                                    "spiced-lentil-butternut-squash-soup": 3,
                                    "wild-mushroom-chestnut-cottage-pie": 3,
                                    "slow-cooker-ratatouille": 2
-
                                }
+
         self.ex_titles = set(["beer-mac-n-cheese", "butternut-squash-sage-macaroni-cheese"])
 
     def parse_html_doc(self, _html_doc):
@@ -363,6 +364,3 @@ class WebScraper:
             f.write(pages2)
             f.close()
 
-
-wb = WebScraper()
-wb.convert_recipe_details_to_json_file()
