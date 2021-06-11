@@ -112,6 +112,20 @@ class WebScraper:
 
         return titles2
 
+    # get star rating of recipe item
+    def rating(self, title):
+        rating = 0
+        html_dom = self.recipe_detail_html(title)
+        path = "/html/body/div[1]/div[3]/main/div/section/div/div[3]/div[2]/div/a[1]/div/div/span[1]"
+        e_span = html_dom.xpath(path)
+
+        if e_span is not None:
+            if len(e_span[0].text) > 0:
+                span_txt = e_span[0].text
+                rating = int(span_txt[8])
+
+        return rating
+
     # get all recipe item data from thier respective pages 
     def recipes(self):
         titles = self.titles()
@@ -363,4 +377,3 @@ class WebScraper:
         with open('recipe_details.json', 'w') as f:
             f.write(pages2)
             f.close()
-
