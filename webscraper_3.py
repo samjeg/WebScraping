@@ -10,6 +10,10 @@ class RecipeDetail:
     def __init__(self):
         self.title = ""
         self.summary = ""
+        self.prep_time = ""
+        self.cooking_time = ""
+        self.image = ""
+        self.rating = 0
         self.ingredients = []
         self.steps = []
 
@@ -111,6 +115,48 @@ class WebScraper:
                 titles2.append(title)
 
         return titles2
+
+    # get cooking time of recipe
+    def cooking_time(self, title):
+        cooking_time = ""
+        html_dom = self.recipe_detail_html(title)
+        path = "/html/body/div[1]/div[3]/main/div/section/div/div[3]/ul[1]/li[1]/div/div[2]/ul/li[2]/span[2]/time"
+        e_span = html_dom.xpath(path)
+
+        if e_span is not None and len(e_span) > 0:
+            if len(e_span[0].text) > 0:
+                span_txt = e_span[0].text
+                cooking_time = span_txt
+
+        return cooking_time
+
+    # get prep time of recipe
+    def prep_time(self, title):
+        prep_time = ""
+        html_dom = self.recipe_detail_html(title)
+        path = "/html/body/div[1]/div[3]/main/div/section/div/div[3]/ul[1]/li[1]/div/div[2]/ul/li[1]/span[2]/time"
+        e_span = html_dom.xpath(path)
+
+        if e_span is not None and len(e_span) > 0:
+            if len(e_span[0].text) > 0:
+                span_txt = e_span[0].text
+                prep_time = span_txt
+
+        return prep_time
+ 
+    # url part of the text only 
+    def image(self, title):
+        image = ""
+        html_dom = self.recipe_detail_html(title)
+        path = "/html/body/div[1]/div[3]/main/div/section/div/div[1]/div/div/picture/img/@src"
+        e_span = html_dom.xpath(path)
+
+        if e_span is not None and len(e_span) > 0:
+            image = e_span[0]
+            image = image.split(",", 1)
+            image = image[0]
+
+        return image
 
     # get star rating of recipe item
     def rating(self, title):
@@ -235,11 +281,19 @@ class WebScraper:
         ingredients = self.ingredients(title)
         n = self.page_step_count[title]
         steps = self.steps(title, n)
+        image = self.image(title)
+        rating = self.rating(title)
+        cooking_time = self.cooking_time(title)
+        prep_time = self.prep_time(title)
         rd = RecipeDetail()
         rd.title = title
         rd.summary = summary 
         rd.ingredients = ingredients
-        rd.steps = steps        
+        rd.steps = steps    
+        rd.cooking_time = cooking_time
+        rd.prep_time = prep_time 
+        rd.rating = rating 
+        rd.image = image 
 
         return rd
 
@@ -374,6 +428,6 @@ class WebScraper:
         pages2 = json.dumps(pages2, ensure_ascii=False).encode("utf8")
         pages2 = pages2.decode()
         
-        with open('recipe_details.json', 'w') as f:
+        with open('recipe_detail_6.json', 'w') as f:
             f.write(pages2)
             f.close()
