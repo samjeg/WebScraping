@@ -10,6 +10,9 @@ class RecipeDetail:
     def __init__(self):
         self.title = ""
         self.summary = ""
+        self.freezable = ""
+        self.serving = ""        
+        self.vegetarian = "" # change to preferences(can be more than vegetarian)
         self.prep_time = ""
         self.cooking_time = ""
         self.image = ""
@@ -115,6 +118,43 @@ class WebScraper:
                 titles2.append(title)
 
         return titles2
+
+    def serving(self, title):
+        serving = ""
+        html_dom = self.recipe_detail_html(title)
+        path_2 = "//*[@id='__next']/div[3]/main/div/section/div/div[3]/ul[1]/li[3]/div/div[2]"
+        e_span = html_dom.xpath(path_2)
+
+        if e_span is not None and len(e_span) > 0:
+            if len(e_span[0].text) > 0:
+                serving = e_span[0].text
+
+        return serving
+        
+    # change to preferences(can be more than vegetarian)
+    def vegetarian(self, title):
+        veg = ""
+        html_dom = self.recipe_detail_html(title)
+        path = "//*[@id='__next']/div[3]/main/div/section/div/div[3]/ul[3]/li[2]/span"
+        e_span = html_dom.xpath(path)
+
+        if e_span is not None and len(e_span) > 0:
+            if len(e_span[0].text) > 0:
+                veg = e_span[0].text
+
+        return veg
+
+    def freezable(self, title):
+        freezable = ""
+        html_dom = self.recipe_detail_html(title)
+        path = "//*[@id='__next']/div[3]/main/div/section/div/div[3]/ul[3]/li[1]/span"
+        e_span = html_dom.xpath(path)
+        
+        if e_span is not None and len(e_span) > 0:
+            if len(e_span[0].text) > 0:
+                freezable = e_span[0].text
+
+        return freezable
 
     # get cooking time of recipe
     def cooking_time(self, title):
@@ -285,15 +325,21 @@ class WebScraper:
         rating = self.rating(title)
         cooking_time = self.cooking_time(title)
         prep_time = self.prep_time(title)
+        vegetarian = self.vegetarian(title)
+        freezable = self.freezable(title)
+        serving = self.serving(title)                
         rd = RecipeDetail()
         rd.title = title
         rd.summary = summary 
-        rd.ingredients = ingredients
+        rd.freezable = freezable
+        rd.serving = serving
+        rd.vegetarian = vegetarian
         rd.steps = steps    
         rd.cooking_time = cooking_time
         rd.prep_time = prep_time 
         rd.rating = rating 
         rd.image = image 
+        rd.ingredients = ingredients
 
         return rd
 
@@ -428,6 +474,7 @@ class WebScraper:
         pages2 = json.dumps(pages2, ensure_ascii=False).encode("utf8")
         pages2 = pages2.decode()
         
-        with open('recipe_detail_6.json', 'w') as f:
+        with open('recipe_detail_2.json', 'w') as f:
             f.write(pages2)
             f.close()
+
