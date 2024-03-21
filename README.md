@@ -1,8 +1,8 @@
-<h1>BBC Good Foods WebScraper</h1>
+<h1>BBC Good Foods WebScraper - Website bbcgoodfoods.com</h1>
 
 <ul>
   <li>Written in Python</li>
   <li>Written using BeautifulSoup Webscraping Package</li>
-  <li>Main Scraper is Webscraper3.py script<li>
-  <li>Data is collected in json file</li>
+  <li>Working Scraper is webscraper_2.py script</li>
+  <li>Correct data is collected in recipedetails_2.json file</li>
 </ul>
