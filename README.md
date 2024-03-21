@@ -1,6 +1,5 @@
 <h1><a href="bbcgoodfood.com">BBC Good Foods</a> WebScraper
-
-<ul>
+</br>
   <li>Written in Python</li>
   <li>Written using BeautifulSoup Webscraping Package</li>
   <li>Working Scraper is webscraper_3.py script</li>
