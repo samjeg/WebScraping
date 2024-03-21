@@ -1,4 +1,4 @@
-<h1>BBC Good Foods WebScraper - Website bbcgoodfoods.com</h1>
+<h1><a href="bbcgoodfood.com">BBC Good Foods</a> WebScraper
 
 <ul>
   <li>Written in Python</li>
